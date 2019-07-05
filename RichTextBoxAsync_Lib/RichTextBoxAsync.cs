@@ -31,22 +31,51 @@ namespace RichTextBoxAsync_Lib
         [DllImport("user32.dll")]
         private static extern IntPtr SetParent(IntPtr hWndChild, IntPtr hWndNewParent);
 
+        #region Private fields
+
+        private IntPtr _thisHandle;
         private Task _asyncTask;
         private AppContext_Test _asyncAppContext;
+        private readonly AutoResetEvent _waitHandle = new AutoResetEvent(false);
         private RichTextBox_CH _richTextBoxInternal;
-        private IntPtr _thisHandle;
 
         private bool _eventsEnabled = true;
 
         private readonly Button _focuser;
 
-        private readonly AutoResetEvent _waitHandle = new AutoResetEvent(false);
+        #region Delegates
+
+        private readonly Action RTB_Focus;
+        private readonly Action<bool> RTB_SetVisible;
+        private readonly Action<bool> RTB_DockToUI;
+        private readonly Action<Size> RTB_SetSize;
+        private readonly Action<bool> RTB_SetReadOnly;
+        private readonly Action<string> RTB_LoadFilePath;
+        private readonly Action<string, RichTextBoxStreamType> RTB_LoadFilePathAndType;
+        private readonly Action<Stream, RichTextBoxStreamType> RTB_LoadFileStreamAndType;
+
+        #endregion
+
+        #endregion
 
         public bool IsInitialized { get; private set; }
 
         public RichTextBoxAsync()
         {
             InitializeComponent();
+
+            #region Init delegates
+
+            RTB_Focus = () => _richTextBoxInternal.Focus();
+            RTB_SetVisible = value => _richTextBoxInternal.Visible = value;
+            RTB_DockToUI = value => SetParent(_richTextBoxInternal.Handle, value ? _thisHandle : IntPtr.Zero);
+            RTB_SetSize = size => _richTextBoxInternal.Size = size;
+            RTB_SetReadOnly = value => _richTextBoxInternal.ReadOnly = value;
+            RTB_LoadFilePath = path => _richTextBoxInternal.LoadFile(path);
+            RTB_LoadFilePathAndType = (path, fileType) => _richTextBoxInternal.LoadFile(path, fileType);
+            RTB_LoadFileStreamAndType = (data, fileType) => _richTextBoxInternal.LoadFile(data, fileType);
+
+            #endregion
 
             // Repulsive hack to fix freezing behavior on focus - UserControl wants at least one child control to
             // pass focus to, and the thread-hosted RichTextBox doesn't count
@@ -74,7 +103,7 @@ namespace RichTextBoxAsync_Lib
             // When we get selected, pass the selection on to our RichTextBox, unless it's invisible of course.
             if (IsInitialized && _richTextBoxInternal.Visible)
             {
-                _richTextBoxInternal.BeginInvoke(new Action(() => _richTextBoxInternal.Focus()));
+                _richTextBoxInternal.BeginInvoke(RTB_Focus);
             }
 
             // If our RichTextBox is hidden, we'll still end up focused. We can't set TabStop to false, because
@@ -92,7 +121,7 @@ namespace RichTextBoxAsync_Lib
         {
             // Make a copy so we don't get cross-thread exceptions
             var size = Size;
-            _richTextBoxInternal.BeginInvoke(new Action(() => _richTextBoxInternal.Size = size));
+            _richTextBoxInternal.BeginInvoke(RTB_SetSize, size);
         }
 
         private void InitRichTextBox()
@@ -138,7 +167,7 @@ namespace RichTextBoxAsync_Lib
 
                 // This is why we need to pass our handle and run CreateHandle() on the RichTextBox (see below);
                 // this is what puts the RichTextBox inside our main UI (while still keeping it asynchronous)
-                _richTextBoxInternal.Invoke(new Action(() => SetParent(_richTextBoxInternal.Handle, _thisHandle)));
+                _richTextBoxInternal.Invoke(RTB_DockToUI, true);
 
                 // "Set Dock to DockStyle.Fill" as it were
                 _richTextBoxInternal.BeginInvoke(new Action(() => _richTextBoxInternal.Location = new Point(0, 0)));
@@ -162,20 +191,20 @@ namespace RichTextBoxAsync_Lib
 
         private void LoadStart(bool readOnly)
         {
-            if (readOnly) _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.ReadOnly = false));
+            if (readOnly) _richTextBoxInternal.Invoke(RTB_SetReadOnly, false);
             // To avoid the freeze-up-on-interaction problem, we have to first pop the RichTextBox off the UI and
             // then hide it, in that order.
-            _richTextBoxInternal.Invoke(new Action(() => SetParent(_richTextBoxInternal.Handle, IntPtr.Zero)));
-            _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.Hide()));
+            _richTextBoxInternal.Invoke(RTB_DockToUI, false);
+            _richTextBoxInternal.Invoke(RTB_SetVisible, false);
         }
 
         private void LoadEnd(bool readOnly)
         {
-            if (readOnly) _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.ReadOnly = true));
-            _richTextBoxInternal.Invoke(new Action(() => SetParent(_richTextBoxInternal.Handle, _thisHandle)));
-            _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.Show()));
+            if (readOnly) _richTextBoxInternal.Invoke(RTB_SetReadOnly, true);
+            _richTextBoxInternal.Invoke(RTB_DockToUI, true);
+            _richTextBoxInternal.Invoke(RTB_SetVisible, true);
             SetRichTextBoxSizeToFill();
-            if (_focuser.Focused) _richTextBoxInternal.BeginInvoke(new Action(() => _richTextBoxInternal.Focus()));
+            if (_focuser.Focused) _richTextBoxInternal.BeginInvoke(RTB_Focus);
         }
 
         public void LoadFile(string path)
@@ -184,7 +213,7 @@ namespace RichTextBoxAsync_Lib
             try
             {
                 LoadStart(readOnly);
-                _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.LoadFile(path)));
+                _richTextBoxInternal.Invoke(RTB_LoadFilePath, path);
             }
             finally
             {
@@ -198,7 +227,7 @@ namespace RichTextBoxAsync_Lib
             try
             {
                 LoadStart(readOnly);
-                _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.LoadFile(path, fileType)));
+                _richTextBoxInternal.Invoke(RTB_LoadFilePathAndType, path, fileType);
             }
             finally
             {
@@ -212,7 +241,7 @@ namespace RichTextBoxAsync_Lib
             try
             {
                 LoadStart(readOnly);
-                _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.LoadFile(data, fileType)));
+                _richTextBoxInternal.Invoke(RTB_LoadFileStreamAndType, data, fileType);
             }
             finally
             {
