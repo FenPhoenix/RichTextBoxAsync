@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace RichTextBoxAsync.Properties
+namespace RichTextBoxAsync_DemoApp.Properties
 {
 
 

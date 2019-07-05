@@ -1,4 +1,4 @@
-﻿namespace RichTextBoxAsync
+﻿namespace RichTextBoxAsync_DemoApp
 {
     partial class MainForm
     {
@@ -30,8 +30,8 @@
         {
             this.button1 = new System.Windows.Forms.Button();
             this.TestLabel = new System.Windows.Forms.Label();
-            this.RTFBox = new System.Windows.Forms.RichTextBox();
             this.button2 = new System.Windows.Forms.Button();
+            this.RTBAsync = new RichTextBoxAsync_Lib.RichTextBoxAsync();
             this.SuspendLayout();
             // 
             // button1
@@ -53,17 +53,6 @@
             this.TestLabel.TabIndex = 1;
             this.TestLabel.Text = "label1";
             // 
-            // RTFBox
-            // 
-            this.RTFBox.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.RTFBox.Location = new System.Drawing.Point(0, 32);
-            this.RTFBox.Name = "RTFBox";
-            this.RTFBox.Size = new System.Drawing.Size(800, 416);
-            this.RTFBox.TabIndex = 2;
-            this.RTFBox.Text = "";
-            // 
             // button2
             // 
             this.button2.Location = new System.Drawing.Point(640, 8);
@@ -73,13 +62,24 @@
             this.button2.Text = "button2";
             this.button2.UseVisualStyleBackColor = true;
             // 
-            // Form1
+            // RTBAsync
+            // 
+            this.RTBAsync.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.RTBAsync.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.RTBAsync.Location = new System.Drawing.Point(0, 64);
+            this.RTBAsync.Name = "RTBAsync";
+            this.RTBAsync.Size = new System.Drawing.Size(800, 384);
+            this.RTBAsync.TabIndex = 4;
+            // 
+            // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(799, 447);
+            this.ClientSize = new System.Drawing.Size(800, 448);
+            this.Controls.Add(this.RTBAsync);
             this.Controls.Add(this.button2);
-            this.Controls.Add(this.RTFBox);
             this.Controls.Add(this.TestLabel);
             this.Controls.Add(this.button1);
             this.Name = "MainForm";
@@ -93,8 +93,8 @@
 
         private System.Windows.Forms.Button button1;
         private System.Windows.Forms.Label TestLabel;
-        private System.Windows.Forms.RichTextBox RTFBox;
         private System.Windows.Forms.Button button2;
+        private RichTextBoxAsync_Lib.RichTextBoxAsync RTBAsync;
     }
 }
 
