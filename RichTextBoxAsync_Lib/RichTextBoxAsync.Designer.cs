@@ -16,6 +16,9 @@
             if (disposing && (components != null))
             {
                 components.Dispose();
+                _richTextBoxInternal?.Dispose();
+                _asyncRTBAppContext?.Dispose();
+                _waitHandle?.Dispose();
             }
             base.Dispose(disposing);
         }

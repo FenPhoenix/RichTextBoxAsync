@@ -35,7 +35,7 @@ namespace RichTextBoxAsync_Lib
 
         private IntPtr _thisHandle;
         private Task _asyncTask;
-        private AppContext_Test _asyncAppContext;
+        private RTB_AppContext _asyncRTBAppContext;
         private readonly AutoResetEvent _waitHandle;
         private RichTextBox_CH _richTextBoxInternal;
 
@@ -154,11 +154,11 @@ namespace RichTextBoxAsync_Lib
 
                     // And the same sort of setup with the ApplicationContext, just in case we want to call into
                     // it too
-                    _asyncAppContext = new AppContext_Test(this, _richTextBoxInternal, _waitHandle);
+                    _asyncRTBAppContext = new RTB_AppContext(this, _richTextBoxInternal, _waitHandle);
 
                     // This starts a second message loop, which is what we want: the RichTextBox will have its
                     // own UI thread
-                    Application.Run(_asyncAppContext);
+                    Application.Run(_asyncRTBAppContext);
                 });
 
                 _asyncTask.Start();
@@ -296,7 +296,7 @@ namespace RichTextBoxAsync_Lib
 
         #endregion
 
-        internal sealed class AppContext_Test : ApplicationContext
+        internal sealed class RTB_AppContext : ApplicationContext
         {
             // TODO: Test DPI scaling behavior
             // If the control doesn't inherit its parents' behavior when SetParent()'d, we may have to put it
@@ -304,7 +304,7 @@ namespace RichTextBoxAsync_Lib
             private readonly RichTextBoxAsync _owner;
             private readonly RichTextBox_CH _richTextBox;
 
-            internal AppContext_Test(RichTextBoxAsync owner, RichTextBox_CH richTextBox, AutoResetEvent waitHandle)
+            internal RTB_AppContext(RichTextBoxAsync owner, RichTextBox_CH richTextBox, AutoResetEvent waitHandle)
             {
                 _owner = owner;
                 _richTextBox = richTextBox;
