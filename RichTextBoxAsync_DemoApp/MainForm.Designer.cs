@@ -130,10 +130,17 @@
             this.RTBAsync.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.RTBAsync.BackColor = System.Drawing.SystemColors.Window;
-            this.RTBAsync.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.RTBAsync.AutoScrollMargin = false;
+            this.RTBAsync.AutoScrollMinSize = false;
+            this.RTBAsync.AutoSizeMode = false;
+            this.RTBAsync.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
+            this.RTBAsync.Lines = new string[0];
             this.RTBAsync.Location = new System.Drawing.Point(0, 64);
             this.RTBAsync.Name = "RTBAsync";
+            this.RTBAsync.ReadOnly = true;
+            this.RTBAsync.Rtf = "{\\rtf1\\ansi\\ansicpg1252\\deff0\\deflang1033{\\fonttbl{\\f0\\fnil\\fcharset0 Microsoft S" +
+    "ans Serif;}}\r\n{\\*\\generator Msftedit 5.41.21.2510;}\\viewkind4\\uc1\\pard\\f0\\fs17\\p" +
+    "ar\r\n}\r\n";
             this.RTBAsync.Size = new System.Drawing.Size(1100, 601);
             this.RTBAsync.TabIndex = 8;
             // 

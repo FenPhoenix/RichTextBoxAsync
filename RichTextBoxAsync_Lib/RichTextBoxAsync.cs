@@ -13,10 +13,12 @@ Todos:
  -Allow setting of all properties of the RichTextBox from the UI (the RichTextBox won't be able to be displayed
   due to the way its construction has to occur in another thread, so we'll have to duplicate the properties and
   then transfer them over at runtime).
+  TODO: Make sure all reads are invoked too
 */
 
 using System;
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -26,6 +28,7 @@ using System.Windows.Forms;
 
 namespace RichTextBoxAsync_Lib
 {
+    [SuppressMessage("ReSharper", "UnusedMember.Global")]
     public partial class RichTextBoxAsync : UserControl
     {
         [DllImport("user32.dll")]
@@ -40,6 +43,7 @@ namespace RichTextBoxAsync_Lib
         private RichTextBox_CH _richTextBoxInternal;
 
         private bool _eventsEnabled;
+        private new readonly bool DesignMode;
 
         private readonly Button _focuser;
 
@@ -58,10 +62,487 @@ namespace RichTextBoxAsync_Lib
 
         #endregion
 
+        [Browsable(false)]
         public bool IsInitialized { get; private set; }
+
+        #region Designer properties
+
+        [Browsable(true), DefaultValue(false)]
+        public bool AcceptsTab
+        {
+            get
+            {
+                return DesignMode
+                    ? _richTextBoxInternal.AcceptsTab
+                    : (bool)_richTextBoxInternal.Invoke(new Func<bool>(() => _richTextBoxInternal.AcceptsTab));
+            }
+            set
+            {
+                if (DesignMode)
+                {
+                    _richTextBoxInternal.AcceptsTab = value;
+                }
+                else
+                {
+                    _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.AcceptsTab = value));
+                }
+            }
+        }
+
+        [Browsable(true), DefaultValue(false)]
+        public bool AutoWordSelection
+        {
+            get
+            {
+                return DesignMode
+                    ? _richTextBoxInternal.AutoWordSelection
+                    : (bool)_richTextBoxInternal.Invoke(new Func<bool>(() => _richTextBoxInternal.AutoWordSelection));
+            }
+            set
+            {
+                if (DesignMode)
+                {
+                    _richTextBoxInternal.AutoWordSelection = value;
+                }
+                else
+                {
+                    _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.AutoWordSelection = value));
+                }
+            }
+        }
+
+        /// <summary>
+        /// This method is not relevant for this class.
+        /// </summary>
+        [Browsable(false)]
+        public override bool AllowDrop { get; set; }
+
+        /// <summary>
+        /// This method is not relevant for this class.
+        /// </summary>
+        [Browsable(false)]
+        public new bool AutoScrollMargin { get; set; }
+
+        /// <summary>
+        /// This method is not relevant for this class.
+        /// </summary>
+        [Browsable(false)]
+        public new bool AutoScrollMinSize { get; set; }
+
+        /// <summary>
+        /// This method is not relevant for this class.
+        /// </summary>
+        [Browsable(false)]
+        public override bool AutoScroll { get; set; }
+
+        /// <summary>
+        /// This method is not relevant for this class.
+        /// </summary>
+        [Browsable(false)]
+        public override bool AutoSize { get; set; }
+
+        /// <summary>
+        /// This method is not relevant for this class.
+        /// </summary>
+        [Browsable(false)]
+        public new bool AutoSizeMode { get; set; }
+
+        /// <summary>
+        /// This method is not relevant for this class.
+        /// </summary>
+        [Browsable(false)]
+        public override AutoValidate AutoValidate { get; set; }
+
+        /// <summary>
+        /// This method is not relevant for this class.
+        /// </summary>
+        [Browsable(false)]
+        public override Image BackgroundImage { get; set; }
+
+        /// <summary>
+        /// This method is not relevant for this class.
+        /// </summary>
+        [Browsable(false)]
+        public override ImageLayout BackgroundImageLayout { get; set; }
+
+        /// <summary>
+        /// This method is not relevant for this class.
+        /// </summary>
+        [Browsable(false)]
+        public new Padding Padding { get; set; }
+
+        [Browsable(true), DefaultValue(typeof(Color), nameof(SystemColors.Window))]
+        public new Color BackColor
+        {
+            get
+            {
+                return DesignMode
+                    ? _richTextBoxInternal.BackColor
+                    : (Color)_richTextBoxInternal.Invoke(new Func<Color>(() => _richTextBoxInternal.BackColor));
+            }
+
+            set
+            {
+                if (DesignMode)
+                {
+                    _richTextBoxInternal.BackColor = value;
+                }
+                else
+                {
+                    _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.BackColor = value));
+                }
+            }
+        }
+
+        [Browsable(true), DefaultValue(typeof(Color), nameof(SystemColors.WindowText))]
+        public new Color ForeColor
+        {
+            get
+            {
+                return DesignMode
+                    ? _richTextBoxInternal.ForeColor
+                    : (Color)_richTextBoxInternal.Invoke(new Func<Color>(() => _richTextBoxInternal.ForeColor));
+            }
+
+            set
+            {
+                if (DesignMode)
+                {
+                    _richTextBoxInternal.ForeColor = value;
+                }
+                else
+                {
+                    _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.ForeColor = value));
+                }
+            }
+        }
+
+        [Browsable(true), DefaultValue(typeof(BorderStyle), nameof(BorderStyle.Fixed3D))]
+        public new BorderStyle BorderStyle
+        {
+            get
+            {
+                return DesignMode
+                    ? _richTextBoxInternal.BorderStyle
+                    : (BorderStyle)_richTextBoxInternal.Invoke(new Func<BorderStyle>(() => _richTextBoxInternal.BorderStyle));
+            }
+
+            set
+            {
+                if (DesignMode)
+                {
+                    _richTextBoxInternal.BorderStyle = value;
+                }
+                else
+                {
+                    _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.BorderStyle = value));
+                }
+            }
+        }
+
+        [Browsable(true), DefaultValue(0)]
+        public int BulletIndent
+        {
+            get
+            {
+                return DesignMode
+                    ? _richTextBoxInternal.BulletIndent
+                    : (int)_richTextBoxInternal.Invoke(new Func<int>(() => _richTextBoxInternal.BulletIndent));
+            }
+
+            set
+            {
+                if (DesignMode)
+                {
+                    _richTextBoxInternal.BulletIndent = value;
+                }
+                else
+                {
+                    _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.BulletIndent = value));
+                }
+            }
+        }
+
+        [Browsable(true), DefaultValue(typeof(Cursor), nameof(Cursors.IBeam))]
+        public new Cursor Cursor
+        {
+            get
+            {
+                return DesignMode
+                    ? _richTextBoxInternal.Cursor
+                    : (Cursor)_richTextBoxInternal.Invoke(new Func<Cursor>(() => _richTextBoxInternal.Cursor));
+            }
+
+            set
+            {
+                if (DesignMode)
+                {
+                    _richTextBoxInternal.Cursor = value;
+                }
+                else
+                {
+                    _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.Cursor = value));
+                }
+            }
+        }
+
+        [Browsable(true), DefaultValue(true)]
+        public bool DetectUrls
+        {
+            get
+            {
+                return DesignMode
+                    ? _richTextBoxInternal.DetectUrls
+                    : (bool)_richTextBoxInternal.Invoke(new Func<bool>(() => _richTextBoxInternal.DetectUrls));
+            }
+
+            set
+            {
+                if (DesignMode)
+                {
+                    _richTextBoxInternal.DetectUrls = value;
+                }
+                else
+                {
+                    _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.DetectUrls = value));
+                }
+            }
+        }
+
+        [Browsable(true), DefaultValue(false)]
+        public bool EnableAutoDragDrop
+        {
+            get
+            {
+                return DesignMode
+                    ? _richTextBoxInternal.EnableAutoDragDrop
+                    : (bool)_richTextBoxInternal.Invoke(new Func<bool>(() => _richTextBoxInternal.EnableAutoDragDrop));
+            }
+
+            set
+            {
+                if (DesignMode)
+                {
+                    _richTextBoxInternal.EnableAutoDragDrop = value;
+                }
+                else
+                {
+                    _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.EnableAutoDragDrop = value));
+                }
+            }
+        }
+
+        [Browsable(true), DefaultValue(true)]
+        public bool HideSelection
+        {
+            get
+            {
+                return DesignMode
+                    ? _richTextBoxInternal.HideSelection
+                    : (bool)_richTextBoxInternal.Invoke(new Func<bool>(() => _richTextBoxInternal.HideSelection));
+            }
+
+            set
+            {
+                if (DesignMode)
+                {
+                    _richTextBoxInternal.HideSelection = value;
+                }
+                else
+                {
+                    _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.HideSelection = value));
+                }
+            }
+        }
+
+        [Browsable(true)]
+        public string[] Lines
+        {
+            get
+            {
+                return DesignMode
+                    ? _richTextBoxInternal.Lines
+                    : (string[])_richTextBoxInternal.Invoke(new Func<string[]>(() => _richTextBoxInternal.Lines));
+            }
+
+            set
+            {
+                if (DesignMode)
+                {
+                    _richTextBoxInternal.Lines = value;
+                }
+                else
+                {
+                    _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.Lines = value));
+                }
+            }
+        }
+
+        [Browsable(true), DefaultValue(int.MaxValue)]
+        public int MaxLength
+        {
+            get
+            {
+                return DesignMode
+                    ? _richTextBoxInternal.MaxLength
+                    : (int)_richTextBoxInternal.Invoke(new Func<int>(() => _richTextBoxInternal.MaxLength));
+            }
+
+            set
+            {
+                if (DesignMode)
+                {
+                    _richTextBoxInternal.MaxLength = value;
+                }
+                else
+                {
+                    _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.MaxLength = value));
+                }
+            }
+        }
+
+        [Browsable(true), DefaultValue(true)]
+        public bool Multiline
+        {
+            get
+            {
+                return DesignMode
+                    ? _richTextBoxInternal.Multiline
+                    : (bool)_richTextBoxInternal.Invoke(new Func<bool>(() => _richTextBoxInternal.Multiline));
+            }
+
+            set
+            {
+                if (DesignMode)
+                {
+                    _richTextBoxInternal.Multiline = value;
+                }
+                else
+                {
+                    _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.Multiline = value));
+                }
+            }
+        }
+
+        [Browsable(true), DefaultValue(false)]
+        public bool ReadOnly
+        {
+            get
+            {
+                return DesignMode
+                    ? _richTextBoxInternal.ReadOnly
+                    : (bool)_richTextBoxInternal.Invoke(new Func<bool>(() => _richTextBoxInternal.ReadOnly));
+            }
+
+            set
+            {
+                if (DesignMode)
+                {
+                    _richTextBoxInternal.ReadOnly = value;
+                }
+                else
+                {
+                    _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.ReadOnly = value));
+                }
+            }
+        }
+
+        [Browsable(true), DefaultValue(0)]
+        public int RightMargin
+        {
+            get
+            {
+                return DesignMode
+                    ? _richTextBoxInternal.RightMargin
+                    : (int)_richTextBoxInternal.Invoke(new Func<int>(() => _richTextBoxInternal.RightMargin));
+            }
+
+            set
+            {
+                if (DesignMode)
+                {
+                    _richTextBoxInternal.RightMargin = value;
+                }
+                else
+                {
+                    _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.RightMargin = value));
+                }
+            }
+        }
+
+        [Browsable(true)]
+        public override string Text
+        {
+            get
+            {
+                return DesignMode
+                    ? _richTextBoxInternal.Text
+                    : (string)_richTextBoxInternal.Invoke(new Func<string>(() => _richTextBoxInternal.Text));
+            }
+            set
+            {
+                if (DesignMode)
+                {
+                    _richTextBoxInternal.Text = value;
+                }
+                else
+                {
+                    _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.Text = value));
+                }
+            }
+        }
+
+        [Browsable(false)]
+        public string Rtf
+        {
+            get
+            {
+                return DesignMode
+                    ? _richTextBoxInternal.Rtf
+                    : (string)_richTextBoxInternal.Invoke(new Func<string>(() => _richTextBoxInternal.Rtf));
+            }
+            set
+            {
+                if (DesignMode)
+                {
+                    _richTextBoxInternal.Rtf = value;
+                }
+                else
+                {
+                    _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.Rtf = value));
+                }
+            }
+        }
+
+        [Browsable(true), DefaultValue(typeof(RichTextBoxScrollBars), nameof(RichTextBoxScrollBars.Both))]
+        public RichTextBoxScrollBars ScrollBars
+        {
+            get
+            {
+                return DesignMode
+                    ? _richTextBoxInternal.ScrollBars
+                    : (RichTextBoxScrollBars)_richTextBoxInternal.Invoke(new Func<RichTextBoxScrollBars>(() => _richTextBoxInternal.ScrollBars));
+            }
+            set
+            {
+                if (DesignMode)
+                {
+                    _richTextBoxInternal.ScrollBars = value;
+                }
+                else
+                {
+                    _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.ScrollBars = value));
+                }
+            }
+        }
+
+        #endregion
 
         public RichTextBoxAsync()
         {
+            // Have to use this check cause DesignMode doesn't return the correct value when used in a constructor
+            DesignMode = LicenseManager.UsageMode == LicenseUsageMode.Designtime;
+
             InitializeComponent();
 
             _eventsEnabled = true;
@@ -84,50 +565,31 @@ namespace RichTextBoxAsync_Lib
             // pass focus to, and the thread-hosted RichTextBox doesn't count
             Controls.Add(_focuser = new Button { Location = new Point(-100, -100) });
 
-            // Have to use this check cause DesignMode doesn't return the correct value when used in a constructor
-            bool designMode = LicenseManager.UsageMode == LicenseUsageMode.Designtime;
-
-            if (!designMode) InitRichTextBox();
-        }
-
-        protected override void OnSizeChanged(EventArgs e)
-        {
-            if (IsInitialized) SetRichTextBoxSizeToFill();
-
-            base.OnSizeChanged(e);
-        }
-
-        protected override void OnEnter(EventArgs e)
-        {
-            if (!_eventsEnabled) return;
-
-            // Because our RichTextBox is being hosted inside our window in a crazy manner and all that, we have
-            // to implement tab functionality ourselves.
-            // When we get selected, pass the selection on to our RichTextBox, unless it's invisible of course.
-            if (IsInitialized && _richTextBoxInternal.Visible)
+            if (!DesignMode)
             {
-                _richTextBoxInternal.BeginInvoke(RTB_Focus);
+                InitRichTextBoxRuntime();
+            }
+            else
+            {
+                InitRichTextBoxDesignTime();
+            }
+        }
+
+        private void InitRichTextBoxDesignTime()
+        {
+            if (IsInitialized)
+            {
+                throw new InvalidOperationException("The underlying RichTextBox has already been initialized.");
             }
 
-            // If our RichTextBox is hidden, we'll still end up focused. We can't set TabStop to false, because
-            // then tabbing to our RichTextBox won't work at all. We could just select the next control here, but
-            // the problem is we don't know which direction the user's tab selection came from. So we wouldn't be
-            // able to tell if we should select the next or the previous control.
+            _richTextBoxInternal = new RichTextBox_CH();
+            Controls.Add(_richTextBoxInternal);
+            _richTextBoxInternal.Dock = DockStyle.Fill;
 
-            // Us being a tab stop is not a huge deal really, it'd just be a nice small bit of polish if it could
-            // be avoided.
-
-            base.OnEnter(e);
+            IsInitialized = true;
         }
 
-        private void SetRichTextBoxSizeToFill()
-        {
-            // Make a copy so we don't get cross-thread exceptions
-            var size = Size;
-            _richTextBoxInternal.BeginInvoke(RTB_SetSize, size);
-        }
-
-        private void InitRichTextBox()
+        private void InitRichTextBoxRuntime()
         {
             if (IsInitialized)
             {
@@ -178,6 +640,59 @@ namespace RichTextBoxAsync_Lib
             }
 
             IsInitialized = true;
+        }
+
+        #region Event overrides
+
+        protected override void OnSizeChanged(EventArgs e)
+        {
+            if (DesignMode)
+            {
+                base.OnSizeChanged(e);
+                return;
+            }
+
+            if (IsInitialized) SetRichTextBoxSizeToFill();
+
+            base.OnSizeChanged(e);
+        }
+
+        protected override void OnEnter(EventArgs e)
+        {
+            if (DesignMode)
+            {
+                base.OnEnter(e);
+                return;
+            }
+
+            if (!_eventsEnabled) return;
+
+            // Because our RichTextBox is being hosted inside our window in a crazy manner and all that, we have
+            // to implement tab functionality ourselves.
+            // When we get selected, pass the selection on to our RichTextBox, unless it's invisible of course.
+            if (IsInitialized && _richTextBoxInternal.Visible)
+            {
+                _richTextBoxInternal.BeginInvoke(RTB_Focus);
+            }
+
+            // If our RichTextBox is hidden, we'll still end up focused. We can't set TabStop to false, because
+            // then tabbing to our RichTextBox won't work at all. We could just select the next control here, but
+            // the problem is we don't know which direction the user's tab selection came from. So we wouldn't be
+            // able to tell if we should select the next or the previous control.
+
+            // Us being a tab stop is not a huge deal really, it'd just be a nice small bit of polish if it could
+            // be avoided.
+
+            base.OnEnter(e);
+        }
+
+        #endregion
+
+        private void SetRichTextBoxSizeToFill()
+        {
+            // Make a copy so we don't get cross-thread exceptions
+            var size = Size;
+            _richTextBoxInternal.BeginInvoke(RTB_SetSize, size);
         }
 
         internal void SelectThis()
@@ -339,7 +854,7 @@ namespace RichTextBoxAsync_Lib
                 // Because our RichTextBox is being hosted inside our window in a crazy manner and all that, we
                 // have to implement tab functionality ourselves.
                 // When the user tabs away from us, pass the selection along to the next control.
-                if (_richTextBox.Visible && e.KeyCode == Keys.Tab)
+                if (_richTextBox.Visible && (!_richTextBox.Multiline || !_richTextBox.AcceptsTab) && e.KeyCode == Keys.Tab)
                 {
                     // We have to do SelectNextControl on the base form itself, otherwise the next control won't
                     // be found properly
