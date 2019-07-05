@@ -36,10 +36,10 @@ namespace RichTextBoxAsync_Lib
         private IntPtr _thisHandle;
         private Task _asyncTask;
         private AppContext_Test _asyncAppContext;
-        private readonly AutoResetEvent _waitHandle = new AutoResetEvent(false);
+        private readonly AutoResetEvent _waitHandle;
         private RichTextBox_CH _richTextBoxInternal;
 
-        private bool _eventsEnabled = true;
+        private bool _eventsEnabled;
 
         private readonly Button _focuser;
 
@@ -63,6 +63,9 @@ namespace RichTextBoxAsync_Lib
         public RichTextBoxAsync()
         {
             InitializeComponent();
+
+            _eventsEnabled = true;
+            _waitHandle = new AutoResetEvent(false);
 
             #region Init delegates
 
