@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -22,13 +23,25 @@ namespace RichTextBoxAsync_Lib
 
         public bool IsInitialized { get; private set; }
 
-        public RichTextBoxAsync() => InitializeComponent();
+        public RichTextBoxAsync()
+        {
+            InitializeComponent();
+        }
 
         protected override void OnSizeChanged(EventArgs e)
         {
             if (IsInitialized) SetRichTextBoxSizeToFill();
 
             base.OnSizeChanged(e);
+        }
+
+        protected override void OnEnter(EventArgs e)
+        {
+            if (IsInitialized && _richTextBoxInternal.Visible)
+            {
+                _richTextBoxInternal.BeginInvoke(new Action(() => _richTextBoxInternal.Focus()));
+            }
+            base.OnEnter(e);
         }
 
         private void SetRichTextBoxSizeToFill()
@@ -60,11 +73,12 @@ namespace RichTextBoxAsync_Lib
                     // The RichTextBox is *created* on this thread, which is what allows it to be async, but we
                     // *declared* it on the main thread, which means we can still reference it, as long as we do
                     // it through an Invoke() or BeginInvoke().
-                    _richTextBoxInternal = new RichTextBox_CH();
+                    // TODO: We shouldn't be setting ReadOnly here, but just for testing purposes
+                    _richTextBoxInternal = new RichTextBox_CH { ReadOnly = true, BackColor = SystemColors.Window };
 
                     // And the same sort of setup with the ApplicationContext, just in case we want to call into
                     // it too
-                    _asyncAppContext = new AppContext_Test(_richTextBoxInternal, _waitHandle);
+                    _asyncAppContext = new AppContext_Test(this, _richTextBoxInternal, _waitHandle);
 
                     // This starts a second message loop, which is what we want: the RichTextBox will have its
                     // own UI thread
@@ -80,8 +94,7 @@ namespace RichTextBoxAsync_Lib
 
                 // This is why we need to pass our handle and run CreateHandle() on the RichTextBox (see below);
                 // this is what puts the RichTextBox inside our main UI (while still keeping it asynchronous)
-                _richTextBoxInternal.Invoke(
-                    new Action(() => SetParent(_richTextBoxInternal.Handle, _thisHandle)));
+                _richTextBoxInternal.Invoke(new Action(() => SetParent(_richTextBoxInternal.Handle, _thisHandle)));
 
                 // "Set Dock to DockStyle.Fill" as it were
                 _richTextBoxInternal.BeginInvoke(new Action(() => _richTextBoxInternal.Location = new Point(0, 0)));
@@ -98,13 +111,16 @@ namespace RichTextBoxAsync_Lib
         // freezing).
         public async Task LoadFileAsync(string path)
         {
+            var oldReadOnly = _richTextBoxInternal.ReadOnly;
             try
             {
+                _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.ReadOnly = false));
                 _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.Hide()));
                 await Task.Run(() => _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.LoadFile(path))));
             }
             finally
             {
+                _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.ReadOnly = oldReadOnly));
                 _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.Show()));
                 SetRichTextBoxSizeToFill();
             }
@@ -112,13 +128,16 @@ namespace RichTextBoxAsync_Lib
 
         public async Task LoadFileAsync(string path, RichTextBoxStreamType fileType)
         {
+            var oldReadOnly = _richTextBoxInternal.ReadOnly;
             try
             {
+                _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.ReadOnly = false));
                 _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.Hide()));
                 await Task.Run(() => _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.LoadFile(path, fileType))));
             }
             finally
             {
+                _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.ReadOnly = oldReadOnly));
                 _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.Show()));
                 SetRichTextBoxSizeToFill();
             }
@@ -126,13 +145,16 @@ namespace RichTextBoxAsync_Lib
 
         public async Task LoadFileAsync(Stream data, RichTextBoxStreamType fileType)
         {
+            var oldReadOnly = _richTextBoxInternal.ReadOnly;
             try
             {
+                _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.ReadOnly = false));
                 _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.Hide()));
                 await Task.Run(() => _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.LoadFile(data, fileType))));
             }
             finally
             {
+                _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.ReadOnly = oldReadOnly));
                 _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.Show()));
                 SetRichTextBoxSizeToFill();
             }
@@ -142,11 +164,27 @@ namespace RichTextBoxAsync_Lib
 
         internal sealed class AppContext_Test : ApplicationContext
         {
+            private readonly RichTextBoxAsync Owner;
             private readonly RichTextBox RTFBox;
 
-            internal AppContext_Test(RichTextBox_CH rtfBox, AutoResetEvent waitHandle)
+            internal AppContext_Test(RichTextBoxAsync owner, RichTextBox_CH rtfBox, AutoResetEvent waitHandle)
             {
+                Owner = owner;
                 RTFBox = rtfBox;
+
+                rtfBox.KeyDown += (sender, e) =>
+                {
+                    if (rtfBox.Visible && e.KeyCode == Keys.Tab)
+                    {
+                        var p = owner.ParentForm;
+                        if (p != null) owner.BeginInvoke(new Action(() => p.SelectNextControl(owner, true, true, true, true)));
+                    }
+                };
+
+                rtfBox.Enter += (sender, e) =>
+                {
+                    Trace.WriteLine("enter");
+                };
 
                 // CreateHandle() is not exposed, so to get at it we have to subclass RichTextBox and expose it our-
                 // selves. We could call CreateControl() which is exposed, but that will only work if the control is

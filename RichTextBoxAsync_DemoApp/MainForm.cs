@@ -52,6 +52,8 @@ namespace RichTextBoxAsync_DemoApp
                 }));
         }
 
+        // TODO: We've got a problem here, where interacting with the UI during load will make it freeze.
+        // That didn't used to happen.
         private async void Button1_Click(object sender, EventArgs e)
         {
             LoadFileButton.Enabled = false;
