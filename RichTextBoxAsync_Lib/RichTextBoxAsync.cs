@@ -195,10 +195,10 @@ namespace RichTextBoxAsync_Lib
         private void LoadStart(bool readOnly)
         {
             if (readOnly) _richTextBoxInternal.Invoke(RTB_SetReadOnly, false);
-            // To avoid the freeze-up-on-interaction problem, we have to first pop the RichTextBox off the UI and
-            // then hide it, in that order.
-            _richTextBoxInternal.Invoke(RTB_DockToUI, false);
+            // To prevent the freeze-up-on-interaction problem, we have to pop the RichTextBox off the UI, so we
+            // hide it first. There used to be more problems here, but I guess adding the focuser button fixed it.
             _richTextBoxInternal.Invoke(RTB_SetVisible, false);
+            _richTextBoxInternal.Invoke(RTB_DockToUI, false);
         }
 
         private void LoadEnd(bool readOnly)
