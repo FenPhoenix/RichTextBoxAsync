@@ -38,6 +38,8 @@ namespace RichTextBoxAsync_Lib
 
         private bool _eventsEnabled = true;
 
+        private readonly Button _focuser;
+
         private readonly AutoResetEvent _waitHandle = new AutoResetEvent(false);
 
         public bool IsInitialized { get; private set; }
@@ -45,6 +47,10 @@ namespace RichTextBoxAsync_Lib
         public RichTextBoxAsync()
         {
             InitializeComponent();
+
+            // Repulsive hack to fix freezing behavior on focus - UserControl wants at least one child control to
+            // pass focus to, and the thread-hosted RichTextBox doesn't count
+            Controls.Add(_focuser = new Button { Location = new Point(-100, -100) });
 
             // Have to use this check cause DesignMode doesn't return the correct value when used in a constructor
             bool designMode = LicenseManager.UsageMode == LicenseUsageMode.Designtime;
@@ -144,7 +150,7 @@ namespace RichTextBoxAsync_Lib
 
         internal void SelectThis()
         {
-            if (!Focused)
+            if (!_focuser.Focused)
             {
                 _eventsEnabled = false;
                 Select();
@@ -169,7 +175,7 @@ namespace RichTextBoxAsync_Lib
             _richTextBoxInternal.Invoke(new Action(() => SetParent(_richTextBoxInternal.Handle, _thisHandle)));
             _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.Show()));
             SetRichTextBoxSizeToFill();
-            if (Focused) _richTextBoxInternal.BeginInvoke(new Action(() => _richTextBoxInternal.Focus()));
+            if (_focuser.Focused) _richTextBoxInternal.BeginInvoke(new Action(() => _richTextBoxInternal.Focus()));
         }
 
         public void LoadFile(string path)
