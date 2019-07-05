@@ -36,6 +36,8 @@ namespace RichTextBoxAsync_Lib
         private RichTextBox_CH _richTextBoxInternal;
         private IntPtr _thisHandle;
 
+        private bool _eventsEnabled = true;
+
         private readonly AutoResetEvent _waitHandle = new AutoResetEvent(false);
 
         public bool IsInitialized { get; private set; }
@@ -59,6 +61,8 @@ namespace RichTextBoxAsync_Lib
 
         protected override void OnEnter(EventArgs e)
         {
+            if (!_eventsEnabled) return;
+
             // Because our RichTextBox is being hosted inside our window in a crazy manner and all that, we have
             // to implement tab functionality ourselves.
             // When we get selected, pass the selection on to our RichTextBox, unless it's invisible of course.
@@ -136,6 +140,16 @@ namespace RichTextBoxAsync_Lib
             }
 
             IsInitialized = true;
+        }
+
+        internal void SelectThis()
+        {
+            if (!Focused)
+            {
+                _eventsEnabled = false;
+                Select();
+                _eventsEnabled = true;
+            }
         }
 
         #region LoadFile
@@ -279,7 +293,7 @@ namespace RichTextBoxAsync_Lib
             // focused, due to the whole context/thread thing and all that.
             private void _richTextBox_MouseDown(object sender, MouseEventArgs e)
             {
-                if (_richTextBox.Visible) _owner.BeginInvoke(new Action(() => _owner.Focus()));
+                if (_richTextBox.Visible) _owner.Invoke(new Action(() => _owner.SelectThis()));
             }
 
             private void _richTextBox_KeyDown(object sender, KeyEventArgs e)
