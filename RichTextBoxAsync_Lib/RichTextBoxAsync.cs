@@ -1,13 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Drawing;
-using System.Data;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -87,6 +81,8 @@ namespace RichTextBoxAsync_Lib
                 // This is why we need to pass our handle and run CreateHandle() on the RichTextBox (see below);
                 // this is what puts the RichTextBox inside our main UI (while still keeping it asynchronous)
                 _richTextBoxInternal.Invoke(new Action(() => SetParent(_richTextBoxInternal.Handle, _thisHandle)));
+
+                // "Set Dock to DockStyle.Fill" as it were
                 _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.Location = new Point(0, 0)));
                 SetRichTextBoxSizeToFill();
             }
@@ -109,11 +105,6 @@ namespace RichTextBoxAsync_Lib
             await Task.Run(() => _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.LoadFile(data, fileType))));
         }
 
-        public async Task LoadFile_PerfTest(string path, int repetitions)
-        {
-            await Task.Run(() => _richTextBoxInternal.Invoke(new Action(() => _asyncAppContext.LoadFile_PerfTest(path, repetitions))));
-        }
-
         internal sealed class AppContext_Test : ApplicationContext
         {
             private readonly RichTextBox RTFBox;
@@ -130,19 +121,6 @@ namespace RichTextBoxAsync_Lib
 
                 // Notify the main thread that we're done initializing
                 waitHandle.Set();
-            }
-
-            public void LoadFile_PerfTest(string path, int repetitions)
-            {
-                // Just in case we hid it or whatever
-                RTFBox.Show();
-
-                // Loop so it takes a long enough time for any blocking to become noticeable
-                for (int i = 0; i < repetitions; i++)
-                {
-                    RTFBox.LoadFile(path);
-                    Trace.WriteLine("boop " + i);
-                }
             }
         }
     }

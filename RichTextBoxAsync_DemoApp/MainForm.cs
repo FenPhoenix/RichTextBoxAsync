@@ -24,13 +24,18 @@ namespace RichTextBoxAsync_DemoApp
 {
     public partial class MainForm : Form
     {
-        private const string TestFile = @"C:\Thief Games\ThiefG-ND-1.26-AngelLoader-Test\FMs\TDP20AC_An_Enigmatic_Treasure_\TDP20AC_An_Enigmatic_Treasure_With_A_Recondite_Discovery.rtf";
+        private const string TestFile = @"..\..\TestData\LongLoadTest.rtf";
 
         private readonly Timer timer = new Timer();
 
         public MainForm()
         {
             InitializeComponent();
+
+            StatusLabel.Text = "";
+            LoadFileTextBox.Text = TestFile;
+
+            if (!RTBAsync.IsInitialized) RTBAsync.InitRichTextBox();
 
             timer.Tick += Timer_Tick;
             timer.Interval = 20;
@@ -42,7 +47,7 @@ namespace RichTextBoxAsync_DemoApp
         {
             BeginInvoke(new Action(() =>
                 {
-                    TestLabel.Text = int.TryParse(TestLabel.Text, out int result) && result < 9
+                    AnimationTestLabel.Text = int.TryParse(AnimationTestLabel.Text, out int result) && result < 9
                         ? (result + 1).ToString()
                         : "0";
                 }));
@@ -50,14 +55,20 @@ namespace RichTextBoxAsync_DemoApp
 
         private async void Button1_Click(object sender, EventArgs e)
         {
-            // An awkwardly crufty-looking call, but it has essentially the same semantics as a bog-vanilla
-            // LoadFile() call, except you can await it and it doesn't block. Heavenly!
-            //await Task.Run(() => RTBAsync.Invoke(new Action(() => RTBContext.LoadRTFBoxTestContent())));
+            StatusLabel.Text = @"Loading...";
 
-            if (!RTBAsync.IsInitialized) RTBAsync.InitRichTextBox();
+            try
+            {
+                await RTBAsync.LoadFileAsync(LoadFileTextBox.Text);
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine(ex);
+                StatusLabel.Text = @"Couldn't load file!";
+                return;
+            }
 
-            await RTBAsync.LoadFile_PerfTest(TestFile, 10);
-
+            StatusLabel.Text = @"Done!";
             Trace.WriteLine("---------done!");
         }
     }
