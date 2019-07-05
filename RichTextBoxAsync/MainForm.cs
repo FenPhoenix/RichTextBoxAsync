@@ -8,6 +8,8 @@ Notes:
  -Hosted windows don't want to stay maximized. Have to figure out a performant way to keep them docked.
  -Casual holy grail: We can even host the rtfbox in our main window, by itself, and then load a file into it AND
   IT DOES IT ASYNCHRONOUSLY EVEN ON THE UI! Hallelujah!
+ -In order to support events, we'd have to have some kind of wrapper that implements its own complete set of
+  events that get invoked into by the other thread and then fires them as normal (I guess)
 */
 
 using System;
@@ -51,7 +53,7 @@ namespace RichTextBoxAsync
 
         private Task RTBTask;
         private AppContext_Test RTBContext;
-        private RichTextBox RTBAsync;
+        private RichTextBox_CH RTBAsync;
         private IntPtr thisHandle;
 
         private readonly AutoResetEvent RTBThreadWaitHandle = new AutoResetEvent(false);
@@ -71,7 +73,7 @@ namespace RichTextBoxAsync
                     // The RichTextBox is *created* on this thread, which is what allows it to be async, but we
                     // *declared* it on the main thread, which means we can still reference it, as long as we do
                     // it through an Invoke() or BeginInvoke().
-                    RTBAsync = new RichTextBox();
+                    RTBAsync = new RichTextBox_CH();
 
                     // And the same sort of setup with the ApplicationContext, just in case we want to call into
                     // it too
@@ -89,9 +91,8 @@ namespace RichTextBoxAsync
                 // never finish anyway.
                 RTBThreadWaitHandle.WaitOne();
 
-                // This is why we need to pass our handle and run CreateHandle() on the RichTextBox's form and
-                // itself (see below) - this is what puts the RichTextBox inside our main UI (while still keeping
-                // it asynchronous)
+                // This is why we need to pass our handle and run CreateHandle() on the RichTextBox (see below);
+                // this is what puts the RichTextBox inside our main UI (while still keeping it asynchronous)
                 RTBAsync.Invoke(new Action(() => SetParent(RTBAsync.Handle, thisHandle)));
             }
 
@@ -105,38 +106,32 @@ namespace RichTextBoxAsync
 
     internal sealed class AppContext_Test : ApplicationContext
     {
-        private readonly RichTextBox AC_RTFBox;
+        private readonly RichTextBox RTFBox;
         private const string TestFile = @"C:\Thief Games\ThiefG-ND-1.26-AngelLoader-Test\FMs\TDP20AC_An_Enigmatic_Treasure_\TDP20AC_An_Enigmatic_Treasure_With_A_Recondite_Discovery.rtf";
 
-        // The RichTextBox needs to be on a form at first (I think - test this more thoroughly later!), but we
-        // can slap it onto our main UI by itself without needing to carry its parent form with it.
-        private readonly FormCustom form1 = new FormCustom();
-
-        internal AppContext_Test(RichTextBox rtfBox, AutoResetEvent are)
+        internal AppContext_Test(RichTextBox_CH rtfBox, AutoResetEvent waitHandle)
         {
-            AC_RTFBox = rtfBox;
+            RTFBox = rtfBox;
 
-            form1.Controls.Add(AC_RTFBox);
-            // CreateHandle() is not exposed, so to get at it we have to subclass Form and expose it ourselves.
-            // CreateHandle() also creates handles for all child controls, so as long as we've added the
-            // RichTextBox before doing this, it will also have its handle created (which we need). We could call
-            // CreateControl() which is exposed, but that will only work if the form is visible. And in order to
-            // avoid visual and focus-stealing issues, we don't want to ever set it to visible.
-            form1.CreateHandle_();
+            // CreateHandle() is not exposed, so to get at it we have to subclass RichTextBox and expose it our-
+            // selves. We could call CreateControl() which is exposed, but that will only work if the control is
+            // visible. And in order to avoid visual and focus-stealing issues, we don't want to ever set it to
+            // visible.
+            rtfBox.CreateHandle();
 
             // Notify the main thread that we're done initializing
-            are.Set();
+            waitHandle.Set();
         }
 
         public void LoadRTFBoxTestContent()
         {
             // Just in case we hid it or whatever
-            AC_RTFBox.Show();
+            RTFBox.Show();
 
             // Loop so it takes a long enough time for any blocking to become noticeable
             for (int i = 0; i < 10; i++)
             {
-                AC_RTFBox.LoadFile(TestFile);
+                RTFBox.LoadFile(TestFile);
                 Trace.WriteLine("boop " + i);
             }
         }
