@@ -158,6 +158,48 @@ namespace RichTextBoxAsync_Lib
             if (Focused) _richTextBoxInternal.BeginInvoke(new Action(() => _richTextBoxInternal.Focus()));
         }
 
+        public void LoadFile(string path)
+        {
+            var readOnly = _richTextBoxInternal.ReadOnly;
+            try
+            {
+                LoadStart(readOnly);
+                _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.LoadFile(path)));
+            }
+            finally
+            {
+                LoadEnd(readOnly);
+            }
+        }
+
+        public void LoadFile(string path, RichTextBoxStreamType fileType)
+        {
+            var readOnly = _richTextBoxInternal.ReadOnly;
+            try
+            {
+                LoadStart(readOnly);
+                _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.LoadFile(path, fileType)));
+            }
+            finally
+            {
+                LoadEnd(readOnly);
+            }
+        }
+
+        public void LoadFile(Stream data, RichTextBoxStreamType fileType)
+        {
+            var readOnly = _richTextBoxInternal.ReadOnly;
+            try
+            {
+                LoadStart(readOnly);
+                _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.LoadFile(data, fileType)));
+            }
+            finally
+            {
+                LoadEnd(readOnly);
+            }
+        }
+
         public async Task LoadFileAsync(string path)
         {
             var readOnly = _richTextBoxInternal.ReadOnly;
