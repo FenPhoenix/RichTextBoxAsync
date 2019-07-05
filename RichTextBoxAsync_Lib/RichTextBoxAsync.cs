@@ -1,8 +1,10 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Runtime.Remoting.Channels;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -26,6 +28,10 @@ namespace RichTextBoxAsync_Lib
         public RichTextBoxAsync()
         {
             InitializeComponent();
+
+            bool designMode = LicenseManager.UsageMode == LicenseUsageMode.Designtime;
+
+            if (!designMode) InitRichTextBox();
         }
 
         protected override void OnSizeChanged(EventArgs e)
@@ -37,10 +43,22 @@ namespace RichTextBoxAsync_Lib
 
         protected override void OnEnter(EventArgs e)
         {
+            // Because our RichTextBox is being hosted inside our window in a crazy manner and all that, we have
+            // to implement tab functionality ourselves.
+            // When we get selected, pass the selection on to our RichTextBox, unless it's invisible of course.
             if (IsInitialized && _richTextBoxInternal.Visible)
             {
                 _richTextBoxInternal.BeginInvoke(new Action(() => _richTextBoxInternal.Focus()));
             }
+
+            // If our RichTextBox is hidden, we'll still end up focused. We can't set TabStop to false, because
+            // then tabbing to our RichTextBox won't work at all. We could just select the next control here, but
+            // the problem is we don't know which direction the user's tab selection came from. So we wouldn't be
+            // able to tell if we should select the next or the previous control.
+
+            // Us being a tab stop is not a huge deal really, it'd just be a nice small bit of polish if it could
+            // be avoided.
+
             base.OnEnter(e);
         }
 
@@ -51,7 +69,7 @@ namespace RichTextBoxAsync_Lib
             _richTextBoxInternal.BeginInvoke(new Action(() => _richTextBoxInternal.Size = size));
         }
 
-        public void InitRichTextBox()
+        private void InitRichTextBox()
         {
             if (IsInitialized)
             {
@@ -106,57 +124,66 @@ namespace RichTextBoxAsync_Lib
 
         #region LoadFile
 
+        private void LoadStart(bool readOnly)
+        {
+            if (readOnly) _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.ReadOnly = false));
+            // Pop it off the UI FIRST, and THEN hide, otherwise we get the freezing-up-on-interaction problem.
+            // Also, we need to pop it off the UI to avoid that problem regardless, so yeah.
+            _richTextBoxInternal.Invoke(new Action(() => SetParent(_richTextBoxInternal.Handle, IntPtr.Zero)));
+            _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.Hide()));
+        }
+
+        private void LoadEnd(bool readOnly)
+        {
+            if (readOnly) _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.ReadOnly = true));
+            _richTextBoxInternal.Invoke(new Action(() => SetParent(_richTextBoxInternal.Handle, _thisHandle)));
+            _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.Show()));
+            SetRichTextBoxSizeToFill();
+            if (Focused) _richTextBoxInternal.BeginInvoke(new Action(() => _richTextBoxInternal.Focus()));
+        }
+
         // We have to hide the internal RichTextBox while we load, otherwise if we resize this control, the UI
         // freezes up until the load is done (and that's a hard freeze, with even the window resize functionality
         // freezing).
         public async Task LoadFileAsync(string path)
         {
-            var oldReadOnly = _richTextBoxInternal.ReadOnly;
+            var readOnly = _richTextBoxInternal.ReadOnly;
             try
             {
-                _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.ReadOnly = false));
-                _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.Hide()));
+                LoadStart(readOnly);
                 await Task.Run(() => _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.LoadFile(path))));
             }
             finally
             {
-                _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.ReadOnly = oldReadOnly));
-                _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.Show()));
-                SetRichTextBoxSizeToFill();
+                LoadEnd(readOnly);
             }
         }
 
         public async Task LoadFileAsync(string path, RichTextBoxStreamType fileType)
         {
-            var oldReadOnly = _richTextBoxInternal.ReadOnly;
+            var readOnly = _richTextBoxInternal.ReadOnly;
             try
             {
-                _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.ReadOnly = false));
-                _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.Hide()));
+                LoadStart(readOnly);
                 await Task.Run(() => _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.LoadFile(path, fileType))));
             }
             finally
             {
-                _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.ReadOnly = oldReadOnly));
-                _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.Show()));
-                SetRichTextBoxSizeToFill();
+                LoadEnd(readOnly);
             }
         }
 
         public async Task LoadFileAsync(Stream data, RichTextBoxStreamType fileType)
         {
-            var oldReadOnly = _richTextBoxInternal.ReadOnly;
+            var readOnly = _richTextBoxInternal.ReadOnly;
             try
             {
-                _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.ReadOnly = false));
-                _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.Hide()));
+                LoadStart(readOnly);
                 await Task.Run(() => _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.LoadFile(data, fileType))));
             }
             finally
             {
-                _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.ReadOnly = oldReadOnly));
-                _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.Show()));
-                SetRichTextBoxSizeToFill();
+                LoadEnd(readOnly);
             }
         }
 
@@ -164,37 +191,57 @@ namespace RichTextBoxAsync_Lib
 
         internal sealed class AppContext_Test : ApplicationContext
         {
-            private readonly RichTextBoxAsync Owner;
-            private readonly RichTextBox RTFBox;
+            // TODO: Test DPI scaling behavior
+            // If the control doesn't inherit its parents' behavior when SetParent()'d, we may have to put it
+            // back on a separate form which can in turn have its scaling behavior set.
+            private readonly RichTextBoxAsync _owner;
+            private readonly RichTextBox_CH _richTextBox;
 
-            internal AppContext_Test(RichTextBoxAsync owner, RichTextBox_CH rtfBox, AutoResetEvent waitHandle)
+            internal AppContext_Test(RichTextBoxAsync owner, RichTextBox_CH richTextBox, AutoResetEvent waitHandle)
             {
-                Owner = owner;
-                RTFBox = rtfBox;
+                _owner = owner;
+                _richTextBox = richTextBox;
 
-                rtfBox.KeyDown += (sender, e) =>
-                {
-                    if (rtfBox.Visible && e.KeyCode == Keys.Tab)
-                    {
-                        var p = owner.ParentForm;
-                        if (p != null) owner.BeginInvoke(new Action(() => p.SelectNextControl(owner, true, true, true, true)));
-                    }
-                };
+                _richTextBox.KeyDown += _richTextBox_KeyDown;
+                _richTextBox.MouseDown += _richTextBox_MouseDown;
 
-                rtfBox.Enter += (sender, e) =>
-                {
-                    Trace.WriteLine("enter");
-                };
-
-                // CreateHandle() is not exposed, so to get at it we have to subclass RichTextBox and expose it our-
-                // selves. We could call CreateControl() which is exposed, but that will only work if the control is
-                // visible. And in order to avoid visual and focus-stealing issues, we don't want to ever set it to
-                // visible.
-                if (!rtfBox.IsHandleCreated) rtfBox.CreateHandle();
+                // CreateHandle() is not exposed, so to get at it we have to subclass RichTextBox and expose it
+                // ourselves. We could call CreateControl() which is exposed, but that will only work if the
+                // control is visible, and we don't want to have to set it to visible right off the bat.
+                if (!_richTextBox.IsHandleCreated) _richTextBox.CreateHandle();
 
                 // Notify the main thread that we're done initializing
                 waitHandle.Set();
             }
+
+            #region Tab selection
+
+            // Because we're on a different ApplicationContext, our selection is separate from the main form's,
+            // meaning we can be selected at the same time as another main form control is. To ensure only one
+            // selection is active at once, whenever we get selected, focus our parent (which is on the main UI
+            // thread).
+            // We're using MouseDown instead of Enter because when we're "entered" we may already technically be
+            // focused, due to the whole context/thread thing and all that.
+            private void _richTextBox_MouseDown(object sender, MouseEventArgs e)
+            {
+                if (_richTextBox.Visible) _owner.BeginInvoke(new Action(() => _owner.Focus()));
+            }
+
+            private void _richTextBox_KeyDown(object sender, KeyEventArgs e)
+            {
+                // Because our RichTextBox is being hosted inside our window in a crazy manner and all that, we
+                // have to implement tab functionality ourselves.
+                // When the user tabs away from us, pass the selection along to the next control.
+                if (_richTextBox.Visible && e.KeyCode == Keys.Tab)
+                {
+                    // We have to do SelectNextControl on the base form itself, otherwise the next control won't
+                    // be found properly
+                    var p = _owner.ParentForm;
+                    if (p != null) _owner.BeginInvoke(new Action(() => p.SelectNextControl(_owner, !e.Shift, true, true, true)));
+                }
+            }
+
+            #endregion
         }
     }
 }

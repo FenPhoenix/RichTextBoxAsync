@@ -36,9 +36,9 @@
             this.LoadFileLabel = new System.Windows.Forms.Label();
             this.StatusLabel = new System.Windows.Forms.Label();
             this.LoadingPictureBox = new System.Windows.Forms.PictureBox();
+            this.InteractionTestButton2 = new System.Windows.Forms.Button();
+            this.InteractionTestButton1 = new System.Windows.Forms.Button();
             this.RTBAsync = new RichTextBoxAsync_Lib.RichTextBoxAsync();
-            this.button1 = new System.Windows.Forms.Button();
-            this.button2 = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.LoadingPictureBox)).BeginInit();
             this.SuspendLayout();
             // 
@@ -47,10 +47,10 @@
             this.LoadFileButton.Location = new System.Drawing.Point(640, 31);
             this.LoadFileButton.Name = "LoadFileButton";
             this.LoadFileButton.Size = new System.Drawing.Size(75, 23);
-            this.LoadFileButton.TabIndex = 0;
+            this.LoadFileButton.TabIndex = 4;
             this.LoadFileButton.Text = "Load file";
             this.LoadFileButton.UseVisualStyleBackColor = true;
-            this.LoadFileButton.Click += new System.EventHandler(this.Button1_Click);
+            this.LoadFileButton.Click += new System.EventHandler(this.LoadFileButton_Click);
             // 
             // AnimationTestLabel
             // 
@@ -66,7 +66,7 @@
             this.LoadFileTextBox.Location = new System.Drawing.Point(104, 32);
             this.LoadFileTextBox.Name = "LoadFileTextBox";
             this.LoadFileTextBox.Size = new System.Drawing.Size(536, 20);
-            this.LoadFileTextBox.TabIndex = 5;
+            this.LoadFileTextBox.TabIndex = 3;
             // 
             // AnimationTestExplanationLabel
             // 
@@ -74,7 +74,7 @@
             this.AnimationTestExplanationLabel.Location = new System.Drawing.Point(8, 8);
             this.AnimationTestExplanationLabel.Name = "AnimationTestExplanationLabel";
             this.AnimationTestExplanationLabel.Size = new System.Drawing.Size(294, 13);
-            this.AnimationTestExplanationLabel.TabIndex = 6;
+            this.AnimationTestExplanationLabel.TabIndex = 0;
             this.AnimationTestExplanationLabel.Text = "If this animation pauses, you\'ll know the UI thread is blocked:";
             // 
             // LoadFileLabel
@@ -83,7 +83,7 @@
             this.LoadFileLabel.Location = new System.Drawing.Point(8, 35);
             this.LoadFileLabel.Name = "LoadFileLabel";
             this.LoadFileLabel.Size = new System.Drawing.Size(84, 13);
-            this.LoadFileLabel.TabIndex = 8;
+            this.LoadFileLabel.TabIndex = 2;
             this.LoadFileLabel.Text = "Load this .rtf file:";
             // 
             // StatusLabel
@@ -92,7 +92,7 @@
             this.StatusLabel.Location = new System.Drawing.Point(728, 32);
             this.StatusLabel.Name = "StatusLabel";
             this.StatusLabel.Size = new System.Drawing.Size(41, 13);
-            this.StatusLabel.TabIndex = 9;
+            this.StatusLabel.TabIndex = 5;
             this.StatusLabel.Text = "[status]";
             // 
             // LoadingPictureBox
@@ -107,6 +107,24 @@
             this.LoadingPictureBox.TabStop = false;
             this.LoadingPictureBox.Visible = false;
             // 
+            // InteractionTestButton2
+            // 
+            this.InteractionTestButton2.Location = new System.Drawing.Point(920, 32);
+            this.InteractionTestButton2.Name = "InteractionTestButton2";
+            this.InteractionTestButton2.Size = new System.Drawing.Size(171, 23);
+            this.InteractionTestButton2.TabIndex = 7;
+            this.InteractionTestButton2.Text = "Interaction test 2";
+            this.InteractionTestButton2.UseVisualStyleBackColor = true;
+            // 
+            // InteractionTestButton1
+            // 
+            this.InteractionTestButton1.Location = new System.Drawing.Point(920, 8);
+            this.InteractionTestButton1.Name = "InteractionTestButton1";
+            this.InteractionTestButton1.Size = new System.Drawing.Size(171, 23);
+            this.InteractionTestButton1.TabIndex = 6;
+            this.InteractionTestButton1.Text = "Interaction test 1";
+            this.InteractionTestButton1.UseVisualStyleBackColor = true;
+            // 
             // RTBAsync
             // 
             this.RTBAsync.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
@@ -117,33 +135,15 @@
             this.RTBAsync.Location = new System.Drawing.Point(0, 64);
             this.RTBAsync.Name = "RTBAsync";
             this.RTBAsync.Size = new System.Drawing.Size(1100, 601);
-            this.RTBAsync.TabIndex = 4;
-            // 
-            // button1
-            // 
-            this.button1.Location = new System.Drawing.Point(880, 32);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(75, 23);
-            this.button1.TabIndex = 11;
-            this.button1.Text = "button1";
-            this.button1.UseVisualStyleBackColor = true;
-            // 
-            // button2
-            // 
-            this.button2.Location = new System.Drawing.Point(960, 32);
-            this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(75, 23);
-            this.button2.TabIndex = 11;
-            this.button2.Text = "button1";
-            this.button2.UseVisualStyleBackColor = true;
+            this.RTBAsync.TabIndex = 8;
             // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1100, 665);
-            this.Controls.Add(this.button2);
-            this.Controls.Add(this.button1);
+            this.Controls.Add(this.InteractionTestButton2);
+            this.Controls.Add(this.InteractionTestButton1);
             this.Controls.Add(this.LoadingPictureBox);
             this.Controls.Add(this.StatusLabel);
             this.Controls.Add(this.LoadFileTextBox);
@@ -170,8 +170,8 @@
         private System.Windows.Forms.Label LoadFileLabel;
         private System.Windows.Forms.Label StatusLabel;
         private System.Windows.Forms.PictureBox LoadingPictureBox;
-        private System.Windows.Forms.Button button1;
-        private System.Windows.Forms.Button button2;
+        private System.Windows.Forms.Button InteractionTestButton2;
+        private System.Windows.Forms.Button InteractionTestButton1;
     }
 }
 

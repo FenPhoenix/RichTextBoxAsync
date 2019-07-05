@@ -15,6 +15,7 @@ Notes:
 using System;
 using System.Diagnostics;
 using System.Drawing;
+using System.Threading;
 using System.Windows.Forms;
 using Timer = System.Windows.Forms.Timer;
 
@@ -34,8 +35,6 @@ namespace RichTextBoxAsync_DemoApp
             AnimationTestLabel.Text = "";
             LoadFileTextBox.Text = TestFile;
 
-            if (!RTBAsync.IsInitialized) RTBAsync.InitRichTextBox();
-
             AnimationTimer.Tick += AnimationTimerTick;
             AnimationTimer.Interval = 20;
             AnimationTimer.Start();
@@ -52,9 +51,7 @@ namespace RichTextBoxAsync_DemoApp
                 }));
         }
 
-        // TODO: We've got a problem here, where interacting with the UI during load will make it freeze.
-        // That didn't used to happen.
-        private async void Button1_Click(object sender, EventArgs e)
+        private async void LoadFileButton_Click(object sender, EventArgs e)
         {
             LoadFileButton.Enabled = false;
             LoadFileTextBox.Enabled = false;
