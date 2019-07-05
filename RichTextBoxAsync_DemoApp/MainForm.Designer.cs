@@ -28,13 +28,16 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.LoadFileButton = new System.Windows.Forms.Button();
             this.AnimationTestLabel = new System.Windows.Forms.Label();
-            this.RTBAsync = new RichTextBoxAsync_Lib.RichTextBoxAsync();
             this.LoadFileTextBox = new System.Windows.Forms.TextBox();
             this.AnimationTestExplanationLabel = new System.Windows.Forms.Label();
             this.LoadFileLabel = new System.Windows.Forms.Label();
             this.StatusLabel = new System.Windows.Forms.Label();
+            this.LoadingPictureBox = new System.Windows.Forms.PictureBox();
+            this.RTBAsync = new RichTextBoxAsync_Lib.RichTextBoxAsync();
+            ((System.ComponentModel.ISupportInitialize)(this.LoadingPictureBox)).BeginInit();
             this.SuspendLayout();
             // 
             // LoadFileButton
@@ -55,17 +58,6 @@
             this.AnimationTestLabel.Size = new System.Drawing.Size(78, 13);
             this.AnimationTestLabel.TabIndex = 1;
             this.AnimationTestLabel.Text = "[animation test]";
-            // 
-            // RTBAsync
-            // 
-            this.RTBAsync.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.RTBAsync.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.RTBAsync.Location = new System.Drawing.Point(0, 64);
-            this.RTBAsync.Name = "RTBAsync";
-            this.RTBAsync.Size = new System.Drawing.Size(1100, 601);
-            this.RTBAsync.TabIndex = 4;
             // 
             // LoadFileTextBox
             // 
@@ -101,11 +93,35 @@
             this.StatusLabel.TabIndex = 9;
             this.StatusLabel.Text = "[status]";
             // 
+            // LoadingPictureBox
+            // 
+            this.LoadingPictureBox.Anchor = System.Windows.Forms.AnchorStyles.None;
+            this.LoadingPictureBox.BackColor = System.Drawing.SystemColors.Window;
+            this.LoadingPictureBox.Image = ((System.Drawing.Image)(resources.GetObject("LoadingPictureBox.Image")));
+            this.LoadingPictureBox.Location = new System.Drawing.Point(528, 328);
+            this.LoadingPictureBox.Name = "LoadingPictureBox";
+            this.LoadingPictureBox.Size = new System.Drawing.Size(64, 64);
+            this.LoadingPictureBox.TabIndex = 10;
+            this.LoadingPictureBox.TabStop = false;
+            this.LoadingPictureBox.Visible = false;
+            // 
+            // RTBAsync
+            // 
+            this.RTBAsync.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.RTBAsync.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.RTBAsync.Location = new System.Drawing.Point(0, 64);
+            this.RTBAsync.Name = "RTBAsync";
+            this.RTBAsync.Size = new System.Drawing.Size(1100, 601);
+            this.RTBAsync.TabIndex = 4;
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1100, 665);
+            this.Controls.Add(this.LoadingPictureBox);
             this.Controls.Add(this.StatusLabel);
             this.Controls.Add(this.LoadFileTextBox);
             this.Controls.Add(this.LoadFileLabel);
@@ -115,6 +131,7 @@
             this.Controls.Add(this.LoadFileButton);
             this.Name = "MainForm";
             this.Text = "Form1";
+            ((System.ComponentModel.ISupportInitialize)(this.LoadingPictureBox)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -129,6 +146,7 @@
         private System.Windows.Forms.Label AnimationTestExplanationLabel;
         private System.Windows.Forms.Label LoadFileLabel;
         private System.Windows.Forms.Label StatusLabel;
+        private System.Windows.Forms.PictureBox LoadingPictureBox;
     }
 }
 

@@ -8,15 +8,13 @@ Notes:
  -Hosted windows don't want to stay maximized. Have to figure out a performant way to keep them docked.
  -Casual holy grail: We can even host the rtfbox in our main window, by itself, and then load a file into it AND
   IT DOES IT ASYNCHRONOUSLY EVEN ON THE UI! Hallelujah!
- -In order to support events, we'd have to have some kind of wrapper that implements its own complete set of
-  events that get invoked into by the other thread and then fires them as normal (I guess)
+ -In order to support events, we'd have to duplicate them all here and invoke them from the AppContext thread (I
+  guess).
 */
 
 using System;
 using System.Diagnostics;
-using System.Runtime.InteropServices;
-using System.Threading;
-using System.Threading.Tasks;
+using System.Drawing;
 using System.Windows.Forms;
 using Timer = System.Windows.Forms.Timer;
 
@@ -26,24 +24,25 @@ namespace RichTextBoxAsync_DemoApp
     {
         private const string TestFile = @"..\..\TestData\LongLoadTest.rtf";
 
-        private readonly Timer timer = new Timer();
+        private readonly Timer AnimationTimer = new Timer();
 
         public MainForm()
         {
             InitializeComponent();
 
             StatusLabel.Text = "";
+            AnimationTestLabel.Text = "";
             LoadFileTextBox.Text = TestFile;
 
             if (!RTBAsync.IsInitialized) RTBAsync.InitRichTextBox();
 
-            timer.Tick += Timer_Tick;
-            timer.Interval = 20;
-            timer.Start();
+            AnimationTimer.Tick += AnimationTimerTick;
+            AnimationTimer.Interval = 20;
+            AnimationTimer.Start();
         }
 
         // If this animation pauses, then I know the UI is being blocked
-        private void Timer_Tick(object sender, EventArgs e)
+        private void AnimationTimerTick(object sender, EventArgs e)
         {
             BeginInvoke(new Action(() =>
                 {
@@ -55,21 +54,30 @@ namespace RichTextBoxAsync_DemoApp
 
         private async void Button1_Click(object sender, EventArgs e)
         {
+            LoadFileButton.Enabled = false;
+            LoadFileTextBox.Enabled = false;
             StatusLabel.Text = @"Loading...";
+            LoadingPictureBox.Location = new Point(
+                RTBAsync.Location.X + ((RTBAsync.Width / 2) - (LoadingPictureBox.Width / 2)),
+                RTBAsync.Location.Y + ((RTBAsync.Height / 2) - (LoadingPictureBox.Height / 2)));
+            LoadingPictureBox.Show();
 
             try
             {
                 await RTBAsync.LoadFileAsync(LoadFileTextBox.Text);
+                StatusLabel.Text = @"Done!";
             }
             catch (Exception ex)
             {
                 Trace.WriteLine(ex);
                 StatusLabel.Text = @"Couldn't load file!";
-                return;
             }
-
-            StatusLabel.Text = @"Done!";
-            Trace.WriteLine("---------done!");
+            finally
+            {
+                LoadingPictureBox.Hide();
+                LoadFileButton.Enabled = true;
+                LoadFileTextBox.Enabled = true;
+            }
         }
     }
 }

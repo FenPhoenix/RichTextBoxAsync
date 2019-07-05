@@ -35,7 +35,7 @@ namespace RichTextBoxAsync_Lib
         {
             // Make a copy so we don't get cross-thread exceptions
             var size = Size;
-            _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.Size = size));
+            _richTextBoxInternal.BeginInvoke(new Action(() => _richTextBoxInternal.Size = size));
         }
 
         public void InitRichTextBox()
@@ -80,30 +80,65 @@ namespace RichTextBoxAsync_Lib
 
                 // This is why we need to pass our handle and run CreateHandle() on the RichTextBox (see below);
                 // this is what puts the RichTextBox inside our main UI (while still keeping it asynchronous)
-                _richTextBoxInternal.Invoke(new Action(() => SetParent(_richTextBoxInternal.Handle, _thisHandle)));
+                _richTextBoxInternal.Invoke(
+                    new Action(() => SetParent(_richTextBoxInternal.Handle, _thisHandle)));
 
                 // "Set Dock to DockStyle.Fill" as it were
-                _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.Location = new Point(0, 0)));
+                _richTextBoxInternal.BeginInvoke(new Action(() => _richTextBoxInternal.Location = new Point(0, 0)));
                 SetRichTextBoxSizeToFill();
             }
 
             IsInitialized = true;
         }
 
+        #region LoadFile
+
+        // We have to hide the internal RichTextBox while we load, otherwise if we resize this control, the UI
+        // freezes up until the load is done (and that's a hard freeze, with even the window resize functionality
+        // freezing).
         public async Task LoadFileAsync(string path)
         {
-            await Task.Run(() => _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.LoadFile(path))));
+            try
+            {
+                _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.Hide()));
+                await Task.Run(() => _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.LoadFile(path))));
+            }
+            finally
+            {
+                _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.Show()));
+                SetRichTextBoxSizeToFill();
+            }
         }
 
         public async Task LoadFileAsync(string path, RichTextBoxStreamType fileType)
         {
-            await Task.Run(() => _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.LoadFile(path, fileType))));
+            try
+            {
+                _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.Hide()));
+                await Task.Run(() => _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.LoadFile(path, fileType))));
+            }
+            finally
+            {
+                _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.Show()));
+                SetRichTextBoxSizeToFill();
+            }
         }
 
         public async Task LoadFileAsync(Stream data, RichTextBoxStreamType fileType)
         {
-            await Task.Run(() => _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.LoadFile(data, fileType))));
+            try
+            {
+                _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.Hide()));
+                await Task.Run(() => _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.LoadFile(data, fileType))));
+            }
+            finally
+            {
+                _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.Show()));
+                SetRichTextBoxSizeToFill();
+            }
         }
+
+        #endregion
 
         internal sealed class AppContext_Test : ApplicationContext
         {
