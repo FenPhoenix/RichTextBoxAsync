@@ -1,10 +1,25 @@
-﻿using System;
+﻿/*
+RichTextBoxAsync
+An experimental method for making a RichTextBox asynchronous for the purpose of allowing it to load large files
+without blocking the UI thread.
+
+Notes:
+ -In order to support events, we'd have to duplicate them all here and invoke them from the AppContext thread (I
+  guess).
+
+Todos:
+ -Support events
+ -Support method calls and properties
+ -Allow setting of all properties of the RichTextBox from the UI (the RichTextBox won't be able to be displayed
+  due to the way its construction has to occur in another thread, so we'll have to duplicate the properties and
+  then transfer them over at runtime).
+*/
+
+using System;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Runtime.InteropServices;
-using System.Runtime.Remoting.Channels;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -29,6 +44,7 @@ namespace RichTextBoxAsync_Lib
         {
             InitializeComponent();
 
+            // Have to use this check cause DesignMode doesn't return the correct value when used in a constructor
             bool designMode = LicenseManager.UsageMode == LicenseUsageMode.Designtime;
 
             if (!designMode) InitRichTextBox();
@@ -127,8 +143,8 @@ namespace RichTextBoxAsync_Lib
         private void LoadStart(bool readOnly)
         {
             if (readOnly) _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.ReadOnly = false));
-            // Pop it off the UI FIRST, and THEN hide, otherwise we get the freezing-up-on-interaction problem.
-            // Also, we need to pop it off the UI to avoid that problem regardless, so yeah.
+            // To avoid the freeze-up-on-interaction problem, we have to first pop the RichTextBox off the UI and
+            // then hide it, in that order.
             _richTextBoxInternal.Invoke(new Action(() => SetParent(_richTextBoxInternal.Handle, IntPtr.Zero)));
             _richTextBoxInternal.Invoke(new Action(() => _richTextBoxInternal.Hide()));
         }
@@ -142,9 +158,6 @@ namespace RichTextBoxAsync_Lib
             if (Focused) _richTextBoxInternal.BeginInvoke(new Action(() => _richTextBoxInternal.Focus()));
         }
 
-        // We have to hide the internal RichTextBox while we load, otherwise if we resize this control, the UI
-        // freezes up until the load is done (and that's a hard freeze, with even the window resize functionality
-        // freezing).
         public async Task LoadFileAsync(string path)
         {
             var readOnly = _richTextBoxInternal.ReadOnly;

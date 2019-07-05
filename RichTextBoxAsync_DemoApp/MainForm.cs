@@ -1,21 +1,6 @@
-﻿/*
-RichTextBoxAsync
-An experimental method for making a RichTextBox asynchronous for the purpose of allowing it to load large files
-without blocking the UI thread.
-
-Notes:
- -Focus will need some manual work. Tab doesn't automatically select the SetParent()ed window.
- -Hosted windows don't want to stay maximized. Have to figure out a performant way to keep them docked.
- -Casual holy grail: We can even host the rtfbox in our main window, by itself, and then load a file into it AND
-  IT DOES IT ASYNCHRONOUSLY EVEN ON THE UI! Hallelujah!
- -In order to support events, we'd have to duplicate them all here and invoke them from the AppContext thread (I
-  guess).
-*/
-
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.Drawing;
-using System.Threading;
 using System.Windows.Forms;
 using Timer = System.Windows.Forms.Timer;
 
